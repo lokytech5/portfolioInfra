@@ -50,7 +50,7 @@ jobs:
 
       - name: Terraform Destroy Plan
         working-directory: ./terraform
-        run: terraform -destroy -out=tfplan
+        run: terraform plan -destroy -out=tfplan
 
       - name: Terraform Destroy Apply
         working-directory: ./terraform
