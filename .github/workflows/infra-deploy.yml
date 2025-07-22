@@ -50,9 +50,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role_to_assume: arn:aws:iam::267509235274:role/git-action-PortfolioInfra
+          role-to-assume: arn:aws:iam::267509235274:role/git-action-PortfolioInfra
           aws-region: us-west-1
-          role_session_name: git-action-PortfolioInfra
+          role-session-name: git-action-PortfolioInfra
 
       - name: Terraform Init
         run: terraform init
