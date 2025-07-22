@@ -1,0 +1,57 @@
+name: Infra Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm infrastructure destruction'
+        required: true
+        default: "no"
+        type: string
+
+jobs:
+  destroy:
+    if: ${{ github.event.inputs.confirm == 'destroy' }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::267509235274:role/git-action-PortfolioInfra
+          aws-region: us-east-1
+          role-session-name: git-action-PortfolioInfra
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=portfolio-infra-tfstate" \
+            -backend-config="key=infra.tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="encrypt=true" \
+            -backend-config="dynamodb_table=portfolioInfra-Lock"
+
+      - name: Terraform State Check
+        working-directory: ./terraform
+        run: terraform state list
+
+      - name: Terraform Destroy Plan
+        working-directory: ./terraform
+        run: terraform -destroy -out=tfplan
+
+      - name: Terraform Destroy Apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve tfplan
